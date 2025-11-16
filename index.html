@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>YOLO Person Detector</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f4f7;
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0px 5px 20px rgba(0,0,0,0.1);
+      width: 420px;
+      text-align: center;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      margin-bottom: 15px;
+      font-size: 24px;
+      color: #333;
+    }
+
+    #preview {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      margin-top: 15px;
+      border-radius: 10px;
+      display: none;
+      border: 1px solid #ddd;
+      background: #fafafa;
+    }
+
+    .upload-btn {
+      background: #0066ff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 15px;
+      transition: 0.2s;
+    }
+
+    .upload-btn:hover {
+      background: #0050cc;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .loading {
+      animation: blink 1s infinite alternate;
+    }
+
+    @keyframes blink {
+      from { opacity: 0.4; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  
+<div class="container">
+  <h2>Обнаружение человека</h2>
+
+  <input type="file" id="image-input" accept="image/*">
+
+  <img id="preview">
+
+  <button class="upload-btn" onclick="send()">Проверить</button>
+
+  <div id="result"></div>
+</div>
+
+
+<script>
+  const fileInput = document.getElementById("image-input");
+  const preview = document.getElementById("preview");
+
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    preview.src = URL.createObjectURL(file);
+    preview.style.display = "block";
+  });
+
+  function send() {
+    const file = fileInput.files[0];
+    if (!file) {
+      alert("Выберите изображение!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = "Обрабатываю...";
+    resultDiv.classList.add("loading");
+
+    fetch("http://localhost:5000/detect", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      resultDiv.classList.remove("loading");
+      resultDiv.innerHTML = data.result;
+    })
+    .catch(() => {
+      resultDiv.classList.remove("loading");
+      resultDiv.innerHTML = "Ошибка запроса";
+    });
+  }
+</script>
+
+</body>
+</html>
